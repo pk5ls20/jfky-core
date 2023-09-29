@@ -35,10 +35,9 @@
 <script>
 import {defineComponent, reactive, ref, toRefs} from "vue";
 import {useStore} from "vuex";
-import cos from "@/utils/cos";
 import router from "@/router";
 import axios from "@/axios";
-import {ElMessage} from "element-plus";
+import {ElLoading, ElMessage} from "element-plus";
 
 export default defineComponent({
   name: "HomeView",
@@ -46,59 +45,46 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const allTableData = ref([]);
-
-    async function getAllUrls(keysList) {
-      const allPromises = keysList.map(keys =>
-          Promise.all(keys.map(key =>
-              new Promise((resolve) => {
-                const timeout = setTimeout(() => {
-                  resolve('');
-                }, 5000);
-                cos.getObjectUrl({
-                  Bucket: process.env.VUE_APP_COS_BUCKET,
-                  Region: process.env.VUE_APP_COS_REGION,
-                  Key: key,
-                  Sign: true,
-                }, (err, data) => {
-                  clearTimeout(timeout);
-                  if (err) {
-                    resolve('');
-                    return;
-                  }
-                  const url = data.Url;
-                  resolve(url);
-                });
-              })
-          ))
-      );
-      return await Promise.all(allPromises);
-    }
-    ElMessage.info("正在获取数据中...");
-    (async () => {
-      const response = await axios.get('/fetchform');
-      allTableData.value = response.data;
-      // console.log(allTableData.value);
-      const keysShow = allTableData.value.map(item => {
-        if (item.pic && item.pic.length > 0) return item.pic;
-        return [''];
-      });
-      const allUrls = await getAllUrls(keysShow);
-      allTableData.value.forEach((item, index) => {
-        item.picurl = allUrls[index] || [''];
-      });
-      ElMessage.success(`成功获取${allTableData.value.length}条数据！`);
-    })();
-    const clickDetail = (index) => {
-      store.commit('setLastShow', allTableData.value[index]);
-      router.push('/show/detail');
-      // console.log(index)
-    }
-
     const state = reactive({
       page: 1,
       limit: 10,
       total: allTableData.value.length,
     });
+
+    // console.log(allTableData.value);
+    async function getAllUrls(keysList) {
+      const baseUrl = 'https://r2.whitefea5.top/';
+      return keysList.map(keys => keys.map(key => `${baseUrl}${key}`));
+    }
+
+    const loadingInstance = ElLoading.service({fullscreen: true});
+    ElMessage.info("正在获取数据中...");
+    try {
+      (async () => {
+        const response = await axios.get('/fetchform');
+        allTableData.value = response.data;
+        // console.log(allTableData.value);
+        const keysShow = allTableData.value.map(item => {
+          if (item.pic && item.pic.length > 0) return item.pic;
+          return [''];
+        });
+        const allUrls = await getAllUrls(keysShow);
+        allTableData.value.forEach((item, index) => {
+          item.picurl = allUrls[index] || [''];
+        });
+        ElMessage.success(`成功获取${allTableData.value.length}条数据！`);
+        state.total = allTableData.value.length;
+        loadingInstance.close();
+      })();
+    } catch (e) {
+      ElMessage.error(e.toString());
+      loadingInstance.close();
+    }
+    const clickDetail = (index) => {
+      store.commit('setLastShow', allTableData.value[index]);
+      router.push('/show/detail');
+      // console.log(index)
+    }
     const tableData = () => {
       return allTableData.value.filter(
           (item, index) =>

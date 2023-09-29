@@ -28,7 +28,7 @@
                   :http-request="upload"
                   :on-change="changeFile"
                   :auto-upload="false"
-                  :on-success="() => ElMessage.success(`文件上传成功！`)"
+                  :on-success="uploadPicSuccess"
               >
                 <template v-slot:trigger>
                   <el-button type="primary">上传</el-button>
@@ -49,18 +49,20 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {ref, reactive} from 'vue';
+import {useStore} from "vuex";
+import {ElMessage, ElMessageBox} from 'element-plus';
 import axiosInstance from "@/axios";
-import cos from "@/utils/cos";
+
 export default {
   methods: {ElMessage},
   setup() {
+    const store = useStore();
     const avatarUploader = ref(null);
     const localForm = reactive({
       id: '',
       name: '',
-      author: '',
+      author: store.state.form.username ? store.state.form.username : '',
       prompt: '',
       info: '',
       fileList: [],
@@ -72,7 +74,8 @@ export default {
       fileListLen: 0,
       currentTime: "",
     });
-    localForm.currentTime = `${Math.round(new Date().getTime()/1000)}`;
+    // console.log(localForm.fileList)
+    localForm.currentTime = `${Math.round(new Date().getTime() / 1000)}`;
     const showPercent = ref(false);
     const rules = reactive({
       id: [
@@ -91,25 +94,42 @@ export default {
         ElMessage.warning("上传图片只能是 JPG、BMP、PNG 格式!");
         return false;
       }
+      const fieldsToCheck = ['id', 'name', 'author', 'prompt', 'info'];
+      const allNumeric = fieldsToCheck.every(field => /^\d*$/.test(localForm[field]));
+      if (allNumeric) {
+        ElMessage.warning("内容不可全部为数字！");
+        return false;
+      }
       localForm.currentFileUid = file.uid;
       localForm.showPercent = true;
       return true;
     };
-    const upload = (params) => {
+    const upload = async (params) => {
       if (params.file) {
-        cos.putObject({
-          Bucket: process.env.VUE_APP_COS_BUCKET,
-          Region: process.env.VUE_APP_COS_REGION,
-          Key: `${localForm.currentTime}-${localForm.fileList.findIndex(file => file.name === params.file.name)}-${params.file.name}`,
-          Body: params.file,
-          StorageClass: "STANDARD",
-          onProgress: (params) => {
-            localForm.percent = params.percent * 100 / localForm.fileListLen;
-          },
-        }, (err, data) => {
-          if (!err && data.statusCode === 200) localForm.fileListLen--;
-        });
+        try {
+          const arrayBuffer = await new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsArrayBuffer(params.file);
+            fileReader.onload = () => resolve(fileReader.result);
+            fileReader.onerror = (error) => reject(error);
+          });
+          await axiosInstance.post('/putobjectr2', arrayBuffer, {
+            headers: {
+              'Content-Type': 'application/octet-stream',
+              'x-content-type': params.file.type.toString(),
+              'x-file-name': `${localForm.currentTime}-${localForm.fileList.findIndex(file => file.name === params.file.name)}-${params.file.name}`
+            }
+          });
+        } catch (error) {
+          localForm.percent += Math.round(1 / localForm.fileListLen * 100);
+          ElMessage.error('Error uploading file:', error);
+        }
       }
+    };
+    const uploadPicSuccess = () => {
+      localForm.percent += Math.round(1 / localForm.fileListLen * 100);
+      localForm.percent === 99 ? localForm.percent = 100 : localForm.percent;
+      localForm.percent === 100 ? ElMessage.success('全部文件上传成功！') : localForm.percent;
     };
     const changeFile = (file, fileList) => {
       localForm.fileList = fileList.map((item) => item);
@@ -126,20 +146,20 @@ export default {
             type: 'warning',
           }
       );
-      if(localForm.id === "" || localForm.author === "" || localForm.prompt === "" || localForm.fileList.length === 0) {
+      if (localForm.id === "" || localForm.author === "" || localForm.prompt === "") {
         ElMessage.error("请填写完整信息！");
         return;
       }
       const userInfo = {
-        id: localForm.id,
-        name: localForm.name,
-        time: localForm.currentTime,
-        author: localForm.author,
-        prompt: localForm.prompt,
-        info: localForm.info,
+        id: localForm.id.toString(),
+        name: localForm.name.toString(),
+        time: localForm.currentTime.toString(),
+        author: localForm.author.toString(),
+        prompt: localForm.prompt.toString(),
+        info: localForm.info.toString(),
         pic: localForm.fileList.map(file => `${localForm.currentTime}-${localForm.fileList.indexOf(file)}-${file.name}`),
       };
-      try{
+      try {
         const resInfo = await axiosInstance.post('/postform', userInfo);
         // console.log(resInfo)
         if (resInfo.data.success) {
@@ -147,11 +167,15 @@ export default {
         } else {
           ElMessage.error("表单提交失败！");
         }
-      }
-      catch (e) {
+      } catch (e) {
         ElMessage.error(e.toString());
       }
-      await avatarUploader.value.submit();
+      ElMessage({
+        duration: 5000,
+        message: "正在上传图片中，请耐心等待直到提示全部上传成功...",
+        type: 'info',
+      })
+      avatarUploader.value.submit();
     };
     return {
       localForm,
@@ -162,6 +186,7 @@ export default {
       upload,
       changeFile,
       showPercent,
+      uploadPicSuccess,
     };
   }
 };

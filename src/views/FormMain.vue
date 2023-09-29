@@ -24,6 +24,7 @@
 import {computed, ref} from "vue";
 import store from "@/store";
 import {ElMessage} from "element-plus";
+import {ElLoading} from 'element-plus';
 import axiosInstance from "@/axios";
 import router from "@/router";
 
@@ -34,8 +35,9 @@ export default {
     const isCheckPassed = ref(false);
     store.commit('setIsLogin', false)
     const check = async () => {
+      const loadingInstance = ElLoading.service({fullscreen: true});
       try {
-        const res = await axiosInstance.get('/userinfo', {})
+        const res = await axiosInstance.get('/userinfo', {});
         if (res.data.status.success) {
           isCheckPassed.value = true;
           ElMessage.success("鉴权成功！")
@@ -51,14 +53,16 @@ export default {
           store.commit('setUserName', "")
           setTimeout(() => {
             router.push('/login')
-          }, 3000);
+          }, 500);
         }
         // console.log(res.data)
       } catch (e) {
         ElMessage.error(e.toString());
         setTimeout(() => {
           router.push('/login')
-        }, 3000);
+        }, 500);
+      } finally {
+        loadingInstance.close();
       }
     }
     check();

@@ -11,6 +11,7 @@ interface User {
 }
 
 const SECRETKEY = process.env.SECERT_KEY;
+console.log(process.env.INVITE_KEY);
 
 export default async function handler(
     request: VercelRequest,

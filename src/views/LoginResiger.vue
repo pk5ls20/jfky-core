@@ -9,6 +9,7 @@
             <input type="password" placeholder="密码" v-model="userPwd">
           </div>
           <button class="bbutton" @click="login">登录</button>
+          <button class="bbutton" v-if="isMobile" @click="changeType">注册</button> <!-- 移动端展示 -->
         </div>
         <div class="big-contain" key="bigContainRegister" v-else>
           <div class="btitle">创建账户</div>
@@ -19,9 +20,10 @@
             <input type="password" placeholder="密码" v-model="userPwd">
           </div>
           <button class="bbutton" @click="register">注册</button>
+          <button class="bbutton" v-if="isMobile" @click="changeType">登录</button> <!-- 移动端展示 -->
         </div>
       </div>
-      <div class="small-box" :class="{active:isLogin}">
+      <div class="small-box" :class="{active:isLogin}" v-if="!isMobile"> <!-- 桌面端展示 -->
         <div class="small-contain" key="smallContainRegister" v-if="isLogin">
           <div class="stitle">你好，铜矿工!</div>
           <p class="scontent">开始注册，和我们一起挖矿</p>
@@ -37,6 +39,7 @@
   </div>
 </template>
 
+
 <script>
 import {computed} from 'vue'
 import {useStore} from 'vuex';
@@ -44,6 +47,8 @@ import {ElMessage} from "element-plus";
 import axiosInstance from '@/axios';
 import router from "@/router";
 import {createHash} from "crypto-browserify";
+import {ElLoading} from 'element-plus';
+// import 'amfe-flexible';
 
 export default {
   name: 'login-register',
@@ -81,6 +86,7 @@ export default {
         alert("填写不能为空！");
         return;
       }
+      const loadingInstance = ElLoading.service({fullscreen: true});
       try {
         const hash1 = createHash('sha256');
         hash1.update(store.state.form.userpwd);
@@ -93,7 +99,7 @@ export default {
           case 0:
             ElMessage.success("登录成功！");
             await router.push('/form', () => {
-              console.log("Navigation successful!");
+              // console.log("Navigation successful!");
             }, (error) => {
               console.error("Navigation failed:", error);
             });
@@ -110,6 +116,8 @@ export default {
       } catch (err) {
         ElMessage.error(err.toString());
         // console.log(err);
+      } finally {
+        loadingInstance.close();
       }
     }
     const register = async () => {
@@ -117,6 +125,7 @@ export default {
         alert("填写不能为空！");
         return;
       }
+      const loadingInstance = ElLoading.service({fullscreen: true});
       try {
         const hash1 = createHash('sha256'), hash2 = createHash('sha256');
         hash1.update(store.state.form.userpwd);
@@ -129,6 +138,7 @@ export default {
           password: hashedPassword,
           inviteNum: hashedInviteNum
         })
+        ElMessage.info("正在注册中，...")
         switch (res.data) {
           case 0:
             ElMessage.success("注册成功！");
@@ -146,6 +156,8 @@ export default {
       } catch (err) {
         ElMessage.error(err.toString())
         // console.log(err);
+      } finally {
+        loadingInstance.close();
       }
     }
     return {
@@ -160,6 +172,22 @@ export default {
       userName,
       inviteNum
     }
+  },
+  data() {
+    return {
+      isMobile: window.innerWidth <= 768
+    };
+  },
+  mounted() {
+    window.addEventListener('resize', this.updateIsMobile);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.updateIsMobile);
+  },
+  methods: {
+    updateIsMobile() {
+      this.isMobile = window.innerWidth <= 768;
+    },
   }
 }
 </script>
@@ -303,5 +331,63 @@ export default {
   border-bottom-right-radius: inherit;
   transform: translateX(-100%);
   transition: all 1s;
+}
+
+@media (max-width: 768px) {
+  .big-box,
+  .small-box {
+    transition: none !important;
+    left: 0 !important;
+    transform: translateX(0%) !important;
+  }
+
+  .big-box.active,
+  .small-box.active {
+    left: 0 !important;
+    transform: translateX(0%) !important;
+  }
+
+  .bform input {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .contain {
+    width: 100%;
+    height: auto;
+  }
+
+  .small-box,
+  .small-contain {
+    display: none; /* 隐藏 small-box 和 small-contain */
+  }
+
+  .big-box {
+    width: 100%;
+  }
+
+  .bbutton,
+  .sbutton {
+    width: 40%; /* 保持原来的宽度 */
+    height: 40px; /* 用像素来设置高度 */
+    line-height: 40px; /* 使文字垂直居中 */
+    font-size: 22px;
+    margin-bottom: 20px;
+    position: relative;
+    top: 60px;
+  }
+
+  .btitle,
+  .stitle {
+    font-size: 32px;
+    position: relative;
+    top: -70px; /* 向上移动20像素，根据需要进行调整 */
+  }
+
+  .scontent {
+    padding: 1em;
+  }
+
 }
 </style>

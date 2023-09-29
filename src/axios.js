@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: 'https://jf.whitefea5.top/api'
+    baseURL: process.env.VUE_APP_METHOD === 'test' ? 'http://127.0.0.1:3000/api' : 'https://jf.whitefea5.top/api'
 });
 
 instance.defaults.withCredentials = true;
