@@ -1,25 +1,62 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+// router/index.js
+import {createRouter, createWebHistory} from 'vue-router'
+import FormMain from "@/views/FormMain.vue";
+import FormFill from "@/views/FormFill.vue";
+import FormShow from "@/views/FormShow.vue";
+import FormShowDetail from "@/views/FormShowDetail.vue";
+import LoginRegister from "@/views/LoginResiger.vue";
+import UserLogout from "@/views/UserLogout.vue";
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
+    {
+        path: '/form',
+        name: 'formMain',
+        component: FormMain,
+        children: [
+            {
+                path: 'fill',
+                component: FormFill
+            },
+            {
+                path: 'show',
+                component: FormShow
+            },
+            {
+                path: '/show/detail',
+                component: FormShowDetail
+            }
+        ]
+    },
+    {
+        path: '/login',
+        name: 'login',
+        component: LoginRegister,
+    },
+    {
+        path: '/logout',
+        name: 'logout',
+        component: UserLogout,
+    },
+    {
+        path: '/',
+        redirect: '/form'
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        beforeEnter: (to, from, next) => {
+            if (to.path.startsWith('/api')) {
+                next({name: 'not-found-api'});
+            } else {
+                next('/');
+            }
+        }
+    }
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
+    history: createWebHistory(process.env.BASE_URL),
+    routes
 })
 
 export default router
