@@ -16,7 +16,7 @@ export default async function handler(
     request: VercelRequest,
     response: VercelResponse,
 ) {
-    try {
+    // try {
         const {qq, password} = request.body as { qq: string; password: string };
         const results: { rows: User[] } =
             await sql`SELECT *
@@ -46,8 +46,8 @@ export default async function handler(
         else{
             return response.status(200).send('1');
         }
-    } catch (error) {
-        // console.error(error);
-        return response.status(502).json({error: 'An error occurred while processing your request'});
-    }
+    // } catch (error) {
+    //     // console.error(error);
+    //     return response.status(502).json({error: 'An error occurred while processing your request'});
+    // }
 }
