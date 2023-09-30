@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <el-table :data="allTableData" style="width: 100%">
+    <el-table :data="tableData()" style="width: 100%">
       <el-table-column type="index" width="50"/>
       <el-table-column prop="id" label="自定编号" width="150"/>
       <el-table-column prop="name" label="名称" width="150"/>
@@ -24,9 +24,9 @@
       <el-pagination
           background
           layout="prev, pager, next ,total,sizes"
-          :total="total"
-          @current-change="handleCurrentChange"
-          @size-change="handleSizeChange"
+          :total=total
+          @current-change=handleCurrentChange
+          @size-change=handleSizeChange
       />
     </div>
   </div>
