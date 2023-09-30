@@ -3,13 +3,13 @@
     <div class="contain">
       <div class="big-box" :class="{active:isLogin}">
         <div class="big-contain" key="bigContainLogin" v-if="isLogin">
-          <div class="btitle">茳风矿业</div>
+          <div class="btitle">茳风矿业展厅喵</div>
           <div class="bform">
             <input type="text" placeholder="qq号" v-model="userQQ">
             <input type="password" placeholder="密码" v-model="userPwd">
           </div>
           <button class="bbutton" @click="login">登录</button>
-          <button class="bbutton" v-if="isMobile" @click="changeType">注册</button> <!-- 移动端展示 -->
+          <button class="bbutton" v-if="isMobile" @click="changeType">注册</button>
         </div>
         <div class="big-contain" key="bigContainRegister" v-else>
           <div class="btitle">创建账户</div>
@@ -20,10 +20,10 @@
             <input type="password" placeholder="密码" v-model="userPwd">
           </div>
           <button class="bbutton" @click="register">注册</button>
-          <button class="bbutton" v-if="isMobile" @click="changeType">登录</button> <!-- 移动端展示 -->
+          <button class="bbutton" v-if="isMobile" @click="changeType">登录</button>
         </div>
       </div>
-      <div class="small-box" :class="{active:isLogin}" v-if="!isMobile"> <!-- 桌面端展示 -->
+      <div class="small-box" :class="{active:isLogin}" v-if="!isMobile">
         <div class="small-contain" key="smallContainRegister" v-if="isLogin">
           <div class="stitle">你好，铜矿工!</div>
           <p class="scontent">开始注册，和我们一起挖矿</p>
@@ -360,7 +360,7 @@ export default {
 
   .small-box,
   .small-contain {
-    display: none; /* 隐藏 small-box 和 small-contain */
+    display: none;
   }
 
   .big-box {
@@ -369,9 +369,9 @@ export default {
 
   .bbutton,
   .sbutton {
-    width: 40%; /* 保持原来的宽度 */
-    height: 40px; /* 用像素来设置高度 */
-    line-height: 40px; /* 使文字垂直居中 */
+    width: 40%;
+    height: 40px;
+    line-height: 40px;
     font-size: 22px;
     margin-bottom: 20px;
     position: relative;
@@ -382,7 +382,7 @@ export default {
   .stitle {
     font-size: 32px;
     position: relative;
-    top: -70px; /* 向上移动20像素，根据需要进行调整 */
+    top: -70px;
   }
 
   .scontent {

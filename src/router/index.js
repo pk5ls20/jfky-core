@@ -6,6 +6,7 @@ import FormShow from "@/views/FormShow.vue";
 import FormShowDetail from "@/views/FormShowDetail.vue";
 import LoginRegister from "@/views/LoginResiger.vue";
 import UserLogout from "@/views/UserLogout.vue";
+// import WalineContent from "@/views/WalineContent.vue";
 
 const routes = [
     {
@@ -22,7 +23,7 @@ const routes = [
                 component: FormShow
             },
             {
-                path: '/show/detail',
+                path: 'show/:id',
                 component: FormShowDetail
             }
         ]

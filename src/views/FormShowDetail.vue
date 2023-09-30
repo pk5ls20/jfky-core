@@ -26,6 +26,10 @@
             </el-carousel-item>
           </el-carousel>
         </div>
+        <div class="post-comment">
+          <h2></h2>
+          <component :is="currentWalineContent"></component>
+        </div>
       </div>
     </div>
   </div>
@@ -37,6 +41,7 @@ import {computed, onBeforeUnmount} from "vue";
 import {ElMessage} from "element-plus";
 import dayjs from 'dayjs';
 import router from "@/router";
+import WalineContent from "@/views/WalineContent.vue";
 
 export default {
   setup() {
@@ -64,7 +69,8 @@ export default {
       postTime,
       postPrompt,
       postInfo,
-      postImg
+      postImg,
+      currentWalineContent: WalineContent
     }
   }
 }

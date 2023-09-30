@@ -82,7 +82,7 @@ export default defineComponent({
     }
     const clickDetail = (index) => {
       store.commit('setLastShow', allTableData.value[index + (state.page - 1) * 10]);
-      router.push('/show/detail');
+      router.push(`show/${index + (state.page - 1) * 10}`);
       // console.log(index)
     }
     const tableData = () => {
