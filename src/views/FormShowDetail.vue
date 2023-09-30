@@ -55,7 +55,6 @@ export default {
       }, 1500);
     }
     onBeforeUnmount(() => {
-      ElMessage.info("组件即将关闭")
       store.commit('setLastShowID', null)
     });
     return {

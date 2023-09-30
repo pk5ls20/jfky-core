@@ -81,7 +81,7 @@ export default defineComponent({
       loadingInstance.close();
     }
     const clickDetail = (index) => {
-      store.commit('setLastShow', allTableData.value[index]);
+      store.commit('setLastShow', allTableData.value[index + (state.page - 1) * 10]);
       router.push('/show/detail');
       // console.log(index)
     }
