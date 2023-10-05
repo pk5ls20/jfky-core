@@ -1,11 +1,12 @@
 // router/index.js
 import {createRouter, createWebHistory} from 'vue-router'
-import FormMain from "@/views/FormMain.vue";
-import FormFill from "@/views/FormFill.vue";
-import FormShow from "@/views/FormShow.vue";
-import FormShowDetail from "@/views/FormShowDetail.vue";
-import LoginRegister from "@/views/LoginResiger.vue";
-import UserLogout from "@/views/UserLogout.vue";
+import FormMain from "@/views/Form/FormMain.vue";
+import FormFill from "@/views/Form/FormFill.vue";
+import FormShow from "@/views/Form/FormShow.vue";
+import FormShowDetail from "@/views/Form/FormShowDetail.vue";
+import LoginRegister from "@/views/Login/LoginResiger.vue";
+import UserLogout from "@/views/Login/UserLogout.vue";
+import ShowCommitHistory from "@/views/Form/FormShowCommitHistory.vue";
 // import WalineContent from "@/views/WalineContent.vue";
 
 const routes = [
@@ -25,6 +26,11 @@ const routes = [
             {
                 path: 'show/:id',
                 component: FormShowDetail
+            },
+            {
+                path: 'commit-history',
+                name: 'commitHistory',
+                component: ShowCommitHistory,
             }
         ]
     },

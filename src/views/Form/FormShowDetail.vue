@@ -41,7 +41,7 @@ import {computed, onBeforeUnmount} from "vue";
 import {ElMessage} from "element-plus";
 import dayjs from 'dayjs';
 import router from "@/router";
-import WalineContent from "@/views/WalineContent.vue";
+import WalineContent from "@/views/Comment/WalineContent.vue";
 
 export default {
   setup() {

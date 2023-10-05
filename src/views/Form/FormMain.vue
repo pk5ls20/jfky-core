@@ -10,6 +10,7 @@
     <el-menu-item v-if=isLogin>{{ `欢迎, ${userID}` }}</el-menu-item>
     <el-menu-item v-if=isLogin index="/form/show">查看作品</el-menu-item>
     <el-menu-item v-if=isLogin index="/form/fill">提交作品</el-menu-item>
+    <el-menu-item v-if=isLogin index="/form/commit-history">更新日志</el-menu-item>
     <el-sub-menu v-if=isLogin index="more">
       <template #title>更多</template>
       <el-menu-item index="/logout">退出登录</el-menu-item>
