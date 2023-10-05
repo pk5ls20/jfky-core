@@ -7,11 +7,11 @@
       <el-timeline-item
           v-for="commit in commits"
           :key="commit.timestamp"
-          :timestamp="commit.timestamp"
+          :timestamp="formatDate(commit.timestamp)"
           placement="top"
       >
         <el-card>
-          <h4>{{ `${commit.title}[${commit.sha}]` }}</h4>
+          <h4>{{ `${commit.title} [${commit.sha}]` }}</h4>
           <p v-html="commit.content.replace(/\n/g, '<br />')"></p>
         </el-card>
       </el-timeline-item>
@@ -20,17 +20,29 @@
 </template>
 
 <script>
-import {ref, onMounted} from 'vue';
+import {onMounted, ref} from 'vue';
 import axios from "@/axios";
-import {ElLoading} from "element-plus";
+import {ElLoading, ElMessage} from "element-plus";
 
 export default {
   setup() {
     const commits = ref([]);
+
+    const formatDate = (timestamp) => {
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    };
+
     onMounted(async () => {
       const loadingInstance = ElLoading.service({fullscreen: true});
       try {
-        console.log('fetching commits');
+        ElMessage.info("正在获取数据中...");
         const response = await axios.get('/commitapi');
         commits.value = response.data;
       } catch (error) {
@@ -39,8 +51,10 @@ export default {
         loadingInstance.close();
       }
     });
+
     return {
       commits,
+      formatDate
     };
   },
 }
