@@ -7,7 +7,10 @@
   >
     <el-menu-item index="/">茳风矿业</el-menu-item>
     <div class="flex-grow"/>
-    <el-menu-item v-if=isLogin>{{ `欢迎, ${userID}` }}</el-menu-item>
+    <el-menu-item v-if="isLogin">
+      {{ `欢迎, ${userID}` }}
+      <el-button v-if="userLevel === 1" type="primary" size="small" style="margin-left: 10px;">MOD</el-button>
+    </el-menu-item>
     <el-menu-item v-if=isLogin index="/form/show">查看作品</el-menu-item>
     <el-menu-item v-if=isLogin index="/form/fill">提交作品</el-menu-item>
     <el-menu-item v-if=isLogin index="/form/commit-history">更新日志</el-menu-item>
@@ -33,6 +36,7 @@ export default {
   setup() {
     const userID = computed(() => store.state.form.username);
     const isLogin = computed(() => store.state.isLogin);
+    const userLevel = computed(() => store.state.form.userlevel);
     const isCheckPassed = ref(false);
     store.commit('setIsLogin', false)
     const check = async () => {
@@ -46,12 +50,15 @@ export default {
           store.commit('setUserQQ', res.data.data.userqq)
           store.commit('setUsername', res.data.data.username)
           store.commit('setId', res.data.data.id)
+          store.commit('setUserLevel', res.data.data.userlevel)
+          console.log(res.data.data)
         } else {
           store.state.isLogin = false;
           store.commit('setIsLogin', false)
           store.commit('setUserQQ', "")
           store.commit('setId', "")
           store.commit('setUserName', "")
+          store.commit('setUserLevel', "")
           setTimeout(() => {
             router.push('/login')
           }, 500);
@@ -70,7 +77,8 @@ export default {
     return {
       userID,
       isCheckPassed,
-      isLogin
+      isLogin,
+      userLevel
     }
   }
 }

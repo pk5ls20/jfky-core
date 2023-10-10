@@ -2,8 +2,8 @@
   <div class="home">
     <el-table :data="tableData()" style="width: 100%">
       <el-table-column type="index" width="50"/>
-      <el-table-column prop="id" label="自定编号" width="150"/>
-      <el-table-column prop="name" label="名称" width="150"/>
+      <el-table-column prop="self_id" label="自定编号" width="150"/>
+      <el-table-column prop="self_name" label="名称" width="150"/>
       <el-table-column prop="author" label="作者" width="150"/>
       <el-table-column prop="prompt" label="提示词"/>
       <el-table-column prop="info" label="补充信息"/>
@@ -17,6 +17,7 @@
       <el-table-column label="更多操作">
         <template #default="scope">
           <el-button link type="primary" @click="clickDetail(scope.$index)">详细查看</el-button>
+          <el-button link type="primary" v-if="userLevel === 1" @click="clickEdit(scope.$index)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -33,7 +34,7 @@
 </template>
 
 <script>
-import {defineComponent, reactive, ref, toRefs} from "vue";
+import {computed, defineComponent, reactive, ref, toRefs} from "vue";
 import {useStore} from "vuex";
 import router from "@/router";
 import axios from "@/axios";
@@ -50,7 +51,7 @@ export default defineComponent({
       limit: 10,
       total: allTableData.value.length,
     });
-
+    const userLevel = computed(() => store.state.form.userlevel);
     // console.log(allTableData.value);
     async function getAllUrls(keysList) {
       const baseUrl = 'https://r2.whitefea5.top/';
@@ -85,6 +86,12 @@ export default defineComponent({
       router.push(`show/${index + (state.page - 1) * 10}`);
       // console.log(index)
     }
+    const clickEdit = (index) => {
+      store.commit('setLastShow', allTableData.value[index + (state.page - 1) * 10]);
+      store.commit('setFormFillWay', 'update');
+      router.push(`fill`);
+      console.log(index + (state.page - 1) * 10)
+    }
     const tableData = () => {
       return allTableData.value.filter(
           (item, index) =>
@@ -104,6 +111,8 @@ export default defineComponent({
       tableData,
       handleCurrentChange,
       handleSizeChange,
+      userLevel,
+      clickEdit,
       ...toRefs(state),
     };
   },

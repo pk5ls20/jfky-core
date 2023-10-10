@@ -1,5 +1,5 @@
 import {VercelRequest, VercelResponse} from '@vercel/node';
-import {sql} from '@vercel/postgres';
+import {QueryResult, sql} from '@vercel/postgres';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 
@@ -11,7 +11,9 @@ interface WorkInfo {
     prompt: string;
     info: string;
     pic: Array<string>;
+    way: string;
 }
+
 const SECRETKEY = process.env.SECERT_KEY;
 export default async function handler(
     request: VercelRequest,
@@ -35,15 +37,39 @@ export default async function handler(
                     }
                 });
         }
-        const {id, name, author, time, prompt, info, pic} = request.body as { id: string; name: string; author: string; time: number; prompt: string; info: string; pic: Array<string> };
-        const results = await sql<WorkInfo[]>`INSERT INTO "items" (id, name, author, time, prompt, info, pic)
-                                              VALUES (${id}, ${name}, ${author}, ${time}, ${prompt}, ${info}, ${pic})`;
-
-        if (!results) throw new Error('User not found');
+        const {id, self_id, self_name, author, time, prompt, info, pic, way} = request.body as {
+            id: number;
+            self_id: string;
+            self_name: string;
+            author: string;
+            time: number;
+            prompt: string;
+            info: string;
+            pic: Array<string>,
+            way: string;
+        };
+        let results: QueryResult<WorkInfo[]>;
+        if (way === 'insert') {
+            results = await sql<WorkInfo[]>`INSERT INTO "items" (self_id, self_name, author, time, prompt, info, pic)
+                                            VALUES (${self_id}, ${self_name}, ${author}, ${time}, ${prompt}, ${info},
+                                                    ${pic})`;
+        } else if (way === 'update') {
+            results = await sql<WorkInfo[]>`UPDATE "items"
+                                            SET self_id   = ${self_id},
+                                                self_name = ${self_name},
+                                                author    = ${author},
+                                                time      = ${time},
+                                                prompt    = ${prompt},
+                                                info      = ${info},
+                                                pic       = ${pic}
+                                            WHERE id = ${id}`;
+        }
+        console.log(results);
+        if (!results) throw new Error('Database operation failed');
         return response.status(200).json({success: true});
     } catch (error) {
         // console.error(error);
-        return response.status(401).json({error: error.message});
+        return response.status(500).json({error: error.message});
     }
 }
 

@@ -9,5 +9,6 @@ module.exports = defineConfig({
         "stream": require.resolve("stream-browserify")
       }
     }
-  }
+  },
+  productionSourceMap: false
 })

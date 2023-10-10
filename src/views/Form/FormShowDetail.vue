@@ -47,7 +47,7 @@ export default {
   setup() {
     const store = useStore();
     const lastShow = computed(() => store.state.lastShow);
-    const postTitle = computed(() => lastShow.value === null ? "" : `${lastShow.value.id} ${lastShow.value.name}`);
+    const postTitle = computed(() => lastShow.value === null ? "" : `${lastShow.value.self_id} ${lastShow.value.self_name}`);
     const postAuthor = computed(() => lastShow.value === null ? "" : lastShow.value.author);
     const postTime = computed(() => lastShow.value === null ? "" : dayjs.unix(Number(lastShow.value?.time) || 0).format('YYYY-MM-DD HH:mm:ss'));
     const postPrompt = computed(() => lastShow.value === null ? "" : lastShow.value.prompt);
@@ -60,7 +60,9 @@ export default {
       }, 1500);
     }
     onBeforeUnmount(() => {
-      store.commit('setLastShowID', null)
+      store.commit('setLastShow', null);
+      store.commit('setLastShowID', null);
+      console.log("unmounted");
     });
     return {
       lastShow,
@@ -72,7 +74,8 @@ export default {
       postImg,
       currentWalineContent: WalineContent
     }
-  }
+  },
+
 }
 </script>
 

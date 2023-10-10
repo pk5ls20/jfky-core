@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 
 interface WorkInfo {
-    id: string;
-    name: string;
+    self_id: string;
+    self_name: string;
     author: string;
     time: number;
     prompt: string;
@@ -33,7 +33,10 @@ export default async function handler(
                     }
                 });
         }
-        const results = await sql<WorkInfo[]>`SELECT * FROM "items"`;
+        const results = await sql<WorkInfo[]>`SELECT *
+                                              FROM "items"
+                                              ORDER BY id;
+        `;
         if (!results) throw new Error('User not found');
         const works = results.rows;
         return response.status(200).json(works);

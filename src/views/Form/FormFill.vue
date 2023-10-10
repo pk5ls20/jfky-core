@@ -4,13 +4,13 @@
       <div class="form-content">
         <div class="form-inputs">
           <el-form-item label="自定编号" prop="id">
-            <el-input v-model.lazy="localForm.id"/>
+            <el-input v-model.lazy="localForm.self_id"/>
           </el-form-item>
           <el-form-item label="名称" prop="name">
-            <el-input v-model.lazy="localForm.name"/>
+            <el-input v-model.lazy="localForm.self_name"/>
           </el-form-item>
           <el-form-item label="作者" prop="author">
-            <el-input v-model.lazy="localForm.author"/>
+            <el-input v-model.lazy="localForm.author" :disabled="userLevel<1"/>
           </el-form-item>
           <el-form-item label="提示词" prop="prompt">
             <el-input v-model.lazy="localForm.prompt" autosize type="textarea"/>
@@ -29,6 +29,8 @@
                   :on-change="changeFile"
                   :auto-upload="false"
                   :on-success="uploadPicSuccess"
+                  :file-list="fileList"
+                  :on-remove="onRemove"
               >
                 <template v-slot:trigger>
                   <el-button type="primary">上传</el-button>
@@ -49,7 +51,7 @@
 </template>
 
 <script>
-import {ref, reactive} from 'vue';
+import {computed, onBeforeUnmount, reactive, ref} from 'vue';
 import {useStore} from "vuex";
 import {ElMessage, ElMessageBox} from 'element-plus';
 import axiosInstance from "@/axios";
@@ -58,27 +60,48 @@ export default {
   methods: {ElMessage},
   setup() {
     const store = useStore();
+    const lastShow = computed(() => store.state.lastShow);
+    console.log(lastShow.value);
     const avatarUploader = ref(null);
+    const userLevel = computed(() => store.state.form.userlevel);
     const localForm = reactive({
-      id: '',
-      name: '',
-      author: store.state.form.username ? store.state.form.username : '',
-      prompt: '',
-      info: '',
-      fileList: [],
+      id: lastShow.value === null ? "" : lastShow.value.id,
+      self_id: lastShow.value === null ? "" : lastShow.value.self_id,
+      self_name: lastShow.value === null ? "" : lastShow.value.self_name,
+      author: lastShow.value === null ? (store.state.form.username ? store.state.form.username : '') : lastShow.value.author,
+      prompt: lastShow.value === null ? "" : lastShow.value.prompt,
+      info: lastShow.value === null ? "" : lastShow.value.info,
+      fileList: null,
       showDialog: false,
       imgUrl: "",
       currentFileUid: null,
       showPercent: false,
       percent: 0,
-      fileListLen: 0,
+      fileListLen: lastShow.value === null ? 0 : lastShow.value.picurl.length,
       currentTime: "",
+      fillWay: store.state.formFillWay === null ? "insert" : "update"
+    });
+    localForm.fileList = (lastShow.value && lastShow.value.picurl) ?
+        lastShow.value.picurl.map((url, index) => ({
+          name: lastShow.value.pic[index],
+          url: url,
+        })) : [];
+    const fileList = computed(() => {
+      if (lastShow.value === null) {
+        return [];
+      }
+      return lastShow.value.picurl.map((url, index) => {
+        return {
+          name: lastShow.value.pic[index],
+          url: url,
+        };
+      });
     });
     // console.log(localForm.fileList)
     localForm.currentTime = `${Math.round(new Date().getTime() / 1000)}`;
     const showPercent = ref(false);
     const rules = reactive({
-      id: [
+      self_id: [
         {required: true, message: '自定编号不能为空qaq', trigger: 'blur'}
       ],
       author: [
@@ -113,12 +136,14 @@ export default {
             fileReader.onload = () => resolve(fileReader.result);
             fileReader.onerror = (error) => reject(error);
           });
+          const headers_ = {
+            'Content-Type': 'application/octet-stream',
+            'x-content-type': params.file.type.toString(),
+            'x-file-name': `${localForm.currentTime}-${localForm.fileList.findIndex(file => file.name === params.file.name)}-${params.file.name}`
+          }
+          console.log(headers_);
           await axiosInstance.post('/putobjectr2', arrayBuffer, {
-            headers: {
-              'Content-Type': 'application/octet-stream',
-              'x-content-type': params.file.type.toString(),
-              'x-file-name': `${localForm.currentTime}-${localForm.fileList.findIndex(file => file.name === params.file.name)}-${params.file.name}`
-            }
+            headers: headers_
           });
         } catch (error) {
           localForm.percent += Math.round(1 / localForm.fileListLen * 100);
@@ -127,17 +152,23 @@ export default {
       }
     };
     const uploadPicSuccess = () => {
-      localForm.percent += Math.round(1 / localForm.fileListLen * 100);
+      localForm.percent += Math.round(1 / localForm.fileList.length * 100);
       localForm.percent === 99 ? localForm.percent = 100 : localForm.percent;
       localForm.percent === 100 ? ElMessage.success('全部文件上传成功！') : localForm.percent;
     };
     const changeFile = (file, fileList) => {
-      localForm.fileList = fileList.map((item) => item);
+      // localForm.fileList = fileList.map((item) => item);
+      // fileList.value = fileList.map((item) => item);
+      localForm.fileList = fileList;
+      localForm.fileListLen = localForm.fileList.length;
+    };
+    const onRemove = (file, fileList) => {
+      localForm.fileList = fileList;
       localForm.fileListLen = localForm.fileList.length;
     };
     const onSubmit = async () => {
       localForm.showPercent = false;
-      localForm.percent = 0;
+      localForm.percent = localForm.fileList.length === 0 ? 0 : localForm.fileList.length / (localForm.fileList.length + localForm.fileList.length) * 100;
       await ElMessageBox.confirm(
           '确认提交吗(/≧▽≦)/',
           {
@@ -146,18 +177,26 @@ export default {
             type: 'warning',
           }
       );
-      if (localForm.id === "" || localForm.author === "" || localForm.prompt === "") {
+      if (localForm.self_id === "" || localForm.author === "" || localForm.prompt === "") {
         ElMessage.error("请填写完整信息！");
         return;
       }
       const userInfo = {
-        id: localForm.id.toString(),
-        name: localForm.name.toString(),
+        id: localForm.id,
+        self_id: localForm.self_id.toString(),
+        self_name: localForm.self_name.toString(),
         time: localForm.currentTime.toString(),
         author: localForm.author.toString(),
         prompt: localForm.prompt.toString(),
         info: localForm.info.toString(),
-        pic: localForm.fileList.map(file => `${localForm.currentTime}-${localForm.fileList.indexOf(file)}-${file.name}`),
+        pic: localForm.fileList.map(file => {
+          console.log(file)
+          if (file.status === 'ready') {
+            return `${localForm.currentTime}-${localForm.fileList.indexOf(file)}-${file.name}`;
+          }
+          return file.name;
+        }),
+        way: localForm.fillWay.toString(),
       };
       try {
         const resInfo = await axiosInstance.post('/postform', userInfo);
@@ -166,9 +205,11 @@ export default {
           ElMessage.success("表单提交成功！");
         } else {
           ElMessage.error("表单提交失败！");
+          return;
         }
       } catch (e) {
         ElMessage.error(e.toString());
+        return;
       }
       ElMessage({
         duration: 5000,
@@ -177,6 +218,12 @@ export default {
       })
       avatarUploader.value.submit();
     };
+    onBeforeUnmount(() => {
+      store.commit('setLastShow', null);
+      store.commit('setLastShowID', null);
+      store.commit('setFormFillWay', null);
+      console.log("unmounted");
+    });
     return {
       localForm,
       onSubmit,
@@ -187,6 +234,9 @@ export default {
       changeFile,
       showPercent,
       uploadPicSuccess,
+      userLevel,
+      fileList,
+      onRemove
     };
   }
 };

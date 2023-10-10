@@ -8,10 +8,12 @@ export default createStore({
             userqq: '',
             userpwd: '',
             username: '',
+            userlevel: '',
             id: '',
             invitenum: '',
         },
         lastShow: null,
+        formFillWay: null,
     },
     getters: {},
     mutations: {
@@ -38,6 +40,12 @@ export default createStore({
         },
         setLastShow(state, value) {
             state.lastShow = value
+        },
+        setUserLevel(state, value) {
+            state.form.userlevel = value
+        },
+        setFormFillWay(state, value) {
+            state.formFillWay = value
         }
     },
     actions: {},

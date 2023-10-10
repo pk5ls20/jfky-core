@@ -49,6 +49,7 @@ export default async function handler(
                 id: user.id,
                 username: user.username,
                 userqq: user.qq,
+                userlevel: user.userlevel,
             },
             debug: {
                 token_time: token_time,
