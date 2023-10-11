@@ -91,7 +91,7 @@ export default defineComponent({
       store.commit('setLastShow', allTableData.value[index + (state.page - 1) * 10]);
       store.commit('setFormFillWay', 'update');
       router.push(`fill`);
-      console.log(index + (state.page - 1) * 10)
+      // console.log(index + (state.page - 1) * 10)
     }
     const clickDelete = (index) => {
       ElMessageBox.confirm('此操作将永久删除该作品, 是否继续?', '提示', {

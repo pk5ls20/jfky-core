@@ -62,7 +62,7 @@ export default {
     onBeforeUnmount(() => {
       store.commit('setLastShow', null);
       store.commit('setLastShowID', null);
-      console.log("unmounted");
+      // console.log("unmounted");
     });
     return {
       lastShow,

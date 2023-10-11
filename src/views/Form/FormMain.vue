@@ -51,7 +51,7 @@ export default {
           store.commit('setUsername', res.data.data.username)
           store.commit('setId', res.data.data.id)
           store.commit('setUserLevel', res.data.data.userlevel)
-          console.log(res.data.data)
+          // console.log(res.data.data)
         } else {
           store.state.isLogin = false;
           store.commit('setIsLogin', false)

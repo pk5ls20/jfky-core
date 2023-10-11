@@ -62,7 +62,7 @@ export default {
   setup() {
     const store = useStore();
     const lastShow = computed(() => store.state.lastShow);
-    console.log(lastShow.value);
+    // console.log(lastShow.value);
     const avatarUploader = ref(null);
     const userLevel = computed(() => store.state.form.userlevel);
     const localForm = reactive({
@@ -142,7 +142,7 @@ export default {
             'x-content-type': params.file.type.toString(),
             'x-file-name': `${localForm.currentTime}-${localForm.fileList.findIndex(file => file.name === params.file.name)}-${params.file.name}`
           }
-          console.log(headers_);
+          // console.log(headers_);
           await axiosInstance.post('/putobjectr2', arrayBuffer, {
             headers: headers_
           });
@@ -192,7 +192,7 @@ export default {
         prompt: localForm.prompt.toString(),
         info: localForm.info.toString(),
         pic: localForm.fileList.map(file => {
-          console.log(file)
+          // console.log(file)
           if (file.status === 'ready') {
             return `${localForm.currentTime}-${localForm.fileList.indexOf(file)}-${file.name}`;
           }
@@ -224,7 +224,7 @@ export default {
       store.commit('setLastShow', null);
       store.commit('setLastShowID', null);
       store.commit('setFormFillWay', null);
-      console.log("unmounted");
+      // console.log("unmounted");
     });
     return {
       localForm,
