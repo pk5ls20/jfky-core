@@ -42,7 +42,8 @@
             <el-button type="primary" @click="onSubmit">提交</el-button>
           </el-form-item>
           <div class="upload-progress">
-            <el-progress v-if="localForm.showPercent" :percentage="localForm.percent"/>
+            <el-progress v-if="false" :percentage="localForm.percent"/>
+            <!--            <el-progress v-if="localForm.showPercent" :percentage="localForm.percent"/>-->
           </div>
         </div>
       </div>
@@ -183,6 +184,7 @@ export default {
       }
       const userInfo = {
         id: localForm.id,
+        user_id: store.state.form.id,
         self_id: localForm.self_id.toString(),
         self_name: localForm.self_name.toString(),
         time: localForm.currentTime.toString(),
@@ -213,7 +215,7 @@ export default {
       }
       ElMessage({
         duration: 5000,
-        message: "正在上传图片中，请耐心等待直到提示全部上传成功...",
+        message: "正在上传图片中，请耐心等待直到文件旁全部打勾...",
         type: 'info',
       })
       avatarUploader.value.submit();

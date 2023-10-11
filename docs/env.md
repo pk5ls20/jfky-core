@@ -47,3 +47,50 @@ set VUE_APP_COS_REGION=""
 set VUE_APP_COS_SECRET_ID=""
 set VUE_APP_COS_SECRET_KEY=""
 ```
+
+## 数据库结构
+
+```bash
+verceldb=> \d users
+                                     Table "public.users"
+  Column   |          Type          | Collation | Nullable |              Default
+-----------+------------------------+-----------+----------+-----------------------------------
+ id        | integer                |           | not null | nextval('users_id_seq'::regclass)
+ qq        | character varying(255) |           | not null |
+ username  | character varying(255) |           | not null |
+ password  | character varying(255) |           | not null |
+ userlevel | integer                |           |          | 0
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+
+verceldb=> \d items
+                                         Table "public.items"
+      Column      |       Type        | Collation | Nullable |                Default
+------------------+-------------------+-----------+----------+----------------------------------------
+ id               | integer           |           | not null | nextval('items_temp_id_seq'::regclass)
+ self_name        | character varying |           |          |
+ self_id          | character varying |           | not null |
+ author           | character varying |           | not null |
+ time             | integer           |           | not null |
+ prompt           | text              |           | not null |
+ info             | text              |           | not null |
+ pic              | text[]            |           | not null |
+ last_modify_user | integer           |           |          |
+Indexes:
+    "items_temp_pkey" PRIMARY KEY, btree (id)
+Triggers:
+    items_audit_trigger AFTER DELETE OR UPDATE ON items FOR EACH ROW EXECUTE FUNCTION items_audit_func()
+
+verceldb=> \d items_audit
+                                            Table "public.items_audit"
+   Column    |            Type             | Collation | Nullable |                    Default
+-------------+-----------------------------+-----------+----------+-----------------------------------------------
+ audit_id    | integer                     |           | not null | nextval('items_audit_audit_id_seq'::regclass)
+ operation   | character(1)                |           | not null |
+ executed_by | character varying(255)      |           | not null |
+ timestamp   | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+ old_data    | text                        |           |          |
+ new_data    | text                        |           |          |
+Indexes:
+    "items_audit_pkey" PRIMARY KEY, btree (audit_id)
+```

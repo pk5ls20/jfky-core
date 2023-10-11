@@ -12,6 +12,7 @@ export default {
   setup(){
     const store = useStore();
     Cookies.remove("authToken")
+    Cookies.remove("authPermission")
     store.commit('setIsLogin', false)
     store.commit('setUserQQ', "")
     store.commit('setId', "")

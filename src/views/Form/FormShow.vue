@@ -18,6 +18,7 @@
         <template #default="scope">
           <el-button link type="primary" @click="clickDetail(scope.$index)">详细查看</el-button>
           <el-button link type="primary" v-if="userLevel === 1" @click="clickEdit(scope.$index)">编辑</el-button>
+          <el-button link type="primary" v-if="userLevel === 1" @click="clickDelete(scope.$index)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -38,7 +39,7 @@ import {computed, defineComponent, reactive, ref, toRefs} from "vue";
 import {useStore} from "vuex";
 import router from "@/router";
 import axios from "@/axios";
-import {ElLoading, ElMessage} from "element-plus";
+import {ElLoading, ElMessage, ElMessageBox} from "element-plus";
 
 export default defineComponent({
   name: "HomeView",
@@ -92,6 +93,34 @@ export default defineComponent({
       router.push(`fill`);
       console.log(index + (state.page - 1) * 10)
     }
+    const clickDelete = (index) => {
+      ElMessageBox.confirm('此操作将永久删除该作品, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        const loadingInstance = ElLoading.service({fullscreen: true});
+        try {
+          const response = await axios.post('/deleteform', {
+            id: allTableData.value[index + (state.page - 1) * 10].id,
+            user_id: store.state.form.id
+          });
+          if (response.data.success) {
+            ElMessage.success("删除成功！");
+            allTableData.value.splice(index + (state.page - 1) * 10, 1);
+            state.total = allTableData.value.length;
+          } else {
+            ElMessage.error("删除失败！");
+          }
+        } catch (e) {
+          ElMessage.error(e.toString());
+        } finally {
+          loadingInstance.close();
+        }
+      }).catch(() => {
+        ElMessage.info('已取消删除');
+      });
+    }
     const tableData = () => {
       return allTableData.value.filter(
           (item, index) =>
@@ -113,6 +142,7 @@ export default defineComponent({
       handleSizeChange,
       userLevel,
       clickEdit,
+      clickDelete,
       ...toRefs(state),
     };
   },

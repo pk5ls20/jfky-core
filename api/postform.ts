@@ -2,9 +2,11 @@ import {VercelRequest, VercelResponse} from '@vercel/node';
 import {QueryResult, sql} from '@vercel/postgres';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
+import CryptoJS from "crypto-js";
 
 interface WorkInfo {
     id: string;
+    user_id: number;
     name: string;
     author: string;
     time: number;
@@ -12,6 +14,13 @@ interface WorkInfo {
     info: string;
     pic: Array<string>;
     way: string;
+}
+
+function decrypt(ciphertext: string, key: string): boolean {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, key);
+    const decryptString = bytes.toString(CryptoJS.enc.Utf8);
+    console.log(decryptString[14]);
+    return decryptString[14] === '1';
 }
 
 const SECRETKEY = process.env.SECERT_KEY;
@@ -37,8 +46,9 @@ export default async function handler(
                     }
                 });
         }
-        const {id, self_id, self_name, author, time, prompt, info, pic, way} = request.body as {
+        const {id, user_id, self_id, self_name, author, time, prompt, info, pic, way} = request.body as {
             id: number;
+            user_id: number;
             self_id: string;
             self_name: string;
             author: string;
@@ -50,18 +60,23 @@ export default async function handler(
         };
         let results: QueryResult<WorkInfo[]>;
         if (way === 'insert') {
-            results = await sql<WorkInfo[]>`INSERT INTO "items" (self_id, self_name, author, time, prompt, info, pic)
+            results = await sql<WorkInfo[]>`INSERT INTO "items" (self_id, self_name, author, time, prompt, info, pic,
+                                                                 last_modify_user)
                                             VALUES (${self_id}, ${self_name}, ${author}, ${time}, ${prompt}, ${info},
-                                                    ${pic})`;
+                                                    ${pic}, ${user_id})`;
         } else if (way === 'update') {
+            if (!decrypt(request.cookies?.authPermission || '', process.env.SECERT_KEY || '')) {
+                return response.status(401).json({error: 'Permission denied'});
+            }
             results = await sql<WorkInfo[]>`UPDATE "items"
-                                            SET self_id   = ${self_id},
-                                                self_name = ${self_name},
-                                                author    = ${author},
-                                                time      = ${time},
-                                                prompt    = ${prompt},
-                                                info      = ${info},
-                                                pic       = ${pic}
+                                            SET self_id          = ${self_id},
+                                                self_name        = ${self_name},
+                                                author           = ${author},
+                                                time             = ${time},
+                                                prompt           = ${prompt},
+                                                info             = ${info},
+                                                pic              = ${pic},
+                                                last_modify_user = ${user_id}
                                             WHERE id = ${id}`;
         }
         console.log(results);
